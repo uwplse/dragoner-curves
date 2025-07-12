@@ -36,17 +36,17 @@ export function App() {
 		setIterations(newIterations);
 	}
 
-	let str: String[] = initialState;
+	let systemString: String[] = initialState;
 
 	for (let i = 0; i < iterations; i++) {
-		str = str.flatMap(dragonCurve);
+		systemString = systemString.flatMap(dragonCurve);
 	}
 
 	return (
 		<div>
 			<p style="text-align: left;">Iterations: {iterations}</p>
 			<p style="text-align: left; border: 1px solid black; padding: 0.5em; width: 80ch; height: 10ch; overflow-y: scroll;">
-				String: {str}
+				String: {systemString}
 			</p>
 			<hr></hr>
 			<label for="iterations">Iterations: </label>
@@ -65,7 +65,7 @@ export function App() {
 			<label for="bg-color">Background color: </label>
       <input id="bg-color" type="color" value={bgColor} onInput={(e) => setBgColor(e.currentTarget.value)}></input>
 			<hr></hr>
-			<P5Canvas sketch={dragonCurveGenerator({ moves: str, strokeWidth, curveColor, bgColor })}></P5Canvas>
+			<P5Canvas sketch={dragonCurveGenerator({ moves: systemString, strokeWidth, curveColor, bgColor })}></P5Canvas>
 		</div>
 	);
 }
