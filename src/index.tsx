@@ -8,6 +8,7 @@ import P5Canvas from "./P5Canvas";
 import { DragonCurve } from "./DragonCurve";
 import { SierpinskiTriangle } from "./SierpinskiTriangle";
 import { LSystem } from "./utils";
+import { BarnsleyFern } from "./BarnsleyFern";
 
 type P5CanvasParameters = {
   strokeWidth: number;
@@ -18,18 +19,18 @@ type P5CanvasParameters = {
 
 const DIMENSION = 600;
 
-const L_SYSTEMS: LSystem<any>[] = [DragonCurve, SierpinskiTriangle];
+const L_SYSTEMS: LSystem<any>[] = [DragonCurve, SierpinskiTriangle, BarnsleyFern];
 
 export function App() {
   const [iterations, setIterations] = useState(0);
   const [enableSound, setEnableSound] = useState(false);
-  const [skipToEnd, setSkipToEnd] = useState(false);
 
   const [strokeWidth, setStrokeWidth] = useState(1);
   const [curveColor, setCurveColor] = useState("#FF0000");
   const [bgColor, setBgColor] = useState("#FCFCFC");
 
   const [currentStroke, setCurrentStroke] = useState(0);
+  const [updateFrequency, setUpdateFrequency] = useState(4);
 
   const [selectedSystem, setSelectedSystem] = useState(0);
 
@@ -46,14 +47,12 @@ export function App() {
   useEffect(() => {
     let timeout = null;
 
-    if (skipToEnd && currentStroke !== controlString.length + 1) {
-      setCurrentStroke(controlString.length + 1);
-    } else if (currentStroke < controlString.length) {
-      timeout = setTimeout(() => setCurrentStroke(currentStroke + 1), 250);
+    if (currentStroke < controlString.length) {
+      timeout = setTimeout(() => setCurrentStroke(currentStroke + 1), 1000 / updateFrequency);
     }
 
     return () => clearTimeout(timeout);
-  }, [currentStroke, iterations, skipToEnd, selectedSystem]);
+  }, [currentStroke, iterations, selectedSystem]);
 
   const setIterationsClamped = (newIterations: number) => {
     if (newIterations <= L_SYSTEMS[selectedSystem].expansionLimit) {
@@ -64,7 +63,7 @@ export function App() {
 
   return (
     <div class="grid-2">
-      <div style="padding-right: 1em;">
+      <div class="content-box">
         <p class="control-string-box">
           String:{" "}
           {controlString.map((ch, idx) => (
@@ -77,17 +76,43 @@ export function App() {
           ))}
         </p>
       </div>
-      <div>
+      <div class="content-box">
+        <label for="lsystem">L-System: </label>
+        <select
+          id="lsystem"
+          onChange={(e) => {
+            setSelectedSystem(Number(e.currentTarget.value));
+						setIterations(0);
+            setCurrentStroke(0);
+          }}
+        >
+          <option value="0">Dragon Curve</option>
+          <option value="1">Sierpinski Triangle</option>
+          <option value="2">Barnsley Fern</option>
+        </select>{" | "}
+        <label for="freq">Frequency (Hz): </label>
+        <input
+          id="freq"
+          type="number"
+          value={updateFrequency}
+          onInput={(e) => setUpdateFrequency(Number(e.currentTarget.value))}
+          style="width: 5ch;"
+        ></input>{" "}
+        | {Math.min(currentStroke, controlString.length)}/{controlString.length}{" "}
+        moves completed
+        <hr></hr>
         <label for="iterations">Iterations: </label>
         <input
           id="iterations"
           type="number"
           value={iterations}
           onInput={(e) => setIterationsClamped(Number(e.currentTarget.value))}
+          style="width: 5ch;"
         ></input>{" "}
         <button onClick={() => setIterationsClamped(iterations + 1)}>
           Expand Once
         </button>{" "}
+        <button onClick={() => setCurrentStroke(controlString.length + 1)}>Skip to End</button>{" "}
         <button
           onClick={() => {
             setIterations(0);
@@ -96,15 +121,14 @@ export function App() {
         >
           Reset
         </button>{" "}
-        | {Math.min(currentStroke, controlString.length)}/{controlString.length}{" "}
-        moves completed
         <hr></hr>
-        <label for="stroke-width">Stroke Width: </label>
+        {/* <label for="stroke-width">Stroke Width: </label>
         <input
           id="stroke-width"
           type="number"
           value={strokeWidth}
           onInput={(e) => setStrokeWidth(Number(e.currentTarget.value))}
+          style="width: 5ch;"
         ></input>{" "}
         <label for="stroke-color">Curve color: </label>
         <input
@@ -120,34 +144,14 @@ export function App() {
           value={bgColor}
           onInput={(e) => setBgColor(e.currentTarget.value)}
         ></input>
-        <hr></hr>
+        <hr></hr> */}
         <label for="sound">Enable Sound: </label>
         <input
           id="sound"
           type="checkbox"
           checked={enableSound}
           onInput={(e) => setEnableSound(e.currentTarget.checked)}
-        ></input>{" "}
-        <label for="skipToEnd">Skip To End: </label>
-        <input
-          id="skipToEnd"
-          type="checkbox"
-          checked={skipToEnd}
-          onInput={(e) => setSkipToEnd(e.currentTarget.checked)}
         ></input>
-        <hr></hr>
-        <label for="lsystem">L-System: </label>
-        <select
-          id="lsystem"
-          onChange={(e) => {
-            setSelectedSystem(Number(e.currentTarget.value));
-						setIterations(0);
-            setCurrentStroke(0);
-          }}
-        >
-          <option value="0">Dragon Curve</option>
-          <option value="1">Sierpinski Triangle</option>
-        </select>
       </div>
       <div className="text-center">
         <P5Canvas
@@ -165,8 +169,7 @@ export function App() {
           )}
         ></P5Canvas>
       </div>
-      <div>
-        <hr></hr>
+      <div class="content-box">
         {L_SYSTEMS[selectedSystem].description}
       </div>
     </div>
