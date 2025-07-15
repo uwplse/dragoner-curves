@@ -2,27 +2,27 @@ import { render } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 
 import p5 from "p5";
-import * as Tone from "tone";
 
 import "./style.css";
 import P5Canvas from "./P5Canvas";
+import { DragonCurve } from "./DragonCurve";
+import { SierpinskiTriangle } from "./SierpinskiTriangle";
+import { LSystem } from "./utils";
 
-const initialState = ["F"];
-
-const dragonCurve = (ch: string): string[] => {
-  switch (ch) {
-    case "F":
-      return ["F", "+", "G"];
-    case "G":
-      return ["F", "-", "G"];
-    default:
-      return [ch];
-  }
+type P5CanvasParameters = {
+  strokeWidth: number;
+  curveColor: string;
+  bgColor: string;
+  canvasDimension: number;
 };
+
+const DIMENSION = 600;
+
+const L_SYSTEMS: LSystem<any>[] = [DragonCurve, SierpinskiTriangle];
 
 export function App() {
   const [iterations, setIterations] = useState(0);
-  const [sound, setSound] = useState(false);
+  const [enableSound, setEnableSound] = useState(false);
   const [skipToEnd, setSkipToEnd] = useState(false);
 
   const [strokeWidth, setStrokeWidth] = useState(1);
@@ -31,32 +31,32 @@ export function App() {
 
   const [currentStroke, setCurrentStroke] = useState(0);
 
+  const [selectedSystem, setSelectedSystem] = useState(0);
+
   const controlString = useMemo(() => {
-    let state: String[] = initialState;
+    let state: string[] = L_SYSTEMS[selectedSystem].initialState;
 
     for (let i = 0; i < iterations; i++) {
-      state = state.flatMap(dragonCurve);
+      state = state.flatMap(L_SYSTEMS[selectedSystem].rules);
     }
 
     return state;
-  }, [iterations]);
+  }, [iterations, selectedSystem]);
 
   useEffect(() => {
     let timeout = null;
 
-    if (skipToEnd) {
+    if (skipToEnd && currentStroke !== controlString.length + 1) {
       setCurrentStroke(controlString.length + 1);
     } else if (currentStroke < controlString.length) {
       timeout = setTimeout(() => setCurrentStroke(currentStroke + 1), 250);
     }
 
     return () => clearTimeout(timeout);
-  }, [currentStroke, iterations, skipToEnd]);
+  }, [currentStroke, iterations, skipToEnd, selectedSystem]);
 
   const setIterationsClamped = (newIterations: number) => {
-    if (newIterations > 15) {
-      setIterations(15);
-    } else {
+    if (newIterations <= L_SYSTEMS[selectedSystem].expansionLimit) {
       setIterations(newIterations);
     }
     setCurrentStroke(0);
@@ -64,6 +64,19 @@ export function App() {
 
   return (
     <div class="grid-2">
+      <div style="padding-right: 1em;">
+        <p class="control-string-box">
+          String:{" "}
+          {controlString.map((ch, idx) => (
+            <span
+              key={idx}
+              className={currentStroke === idx ? "highlighted" : ""}
+            >
+              {ch}
+            </span>
+          ))}
+        </p>
+      </div>
       <div>
         <label for="iterations">Iterations: </label>
         <input
@@ -73,7 +86,7 @@ export function App() {
           onInput={(e) => setIterationsClamped(Number(e.currentTarget.value))}
         ></input>{" "}
         <button onClick={() => setIterationsClamped(iterations + 1)}>
-          Expand
+          Expand Once
         </button>{" "}
         <button
           onClick={() => {
@@ -112,8 +125,8 @@ export function App() {
         <input
           id="sound"
           type="checkbox"
-          checked={sound}
-          onInput={(e) => setSound(e.currentTarget.checked)}
+          checked={enableSound}
+          onInput={(e) => setEnableSound(e.currentTarget.checked)}
         ></input>{" "}
         <label for="skipToEnd">Skip To End: </label>
         <input
@@ -123,107 +136,59 @@ export function App() {
           onInput={(e) => setSkipToEnd(e.currentTarget.checked)}
         ></input>
         <hr></hr>
-      </div>
-      <div>
-        <p style="text-align: left; border: 1px solid black; padding: 0.5em; max-width: calc(100% - 5rem); height: 10ch; overflow-y: scroll;">
-          String:{" "}
-          {controlString.map((ch, idx) => (
-            <span
-              key={idx}
-              className={currentStroke === idx ? "highlighted" : ""}
-            >
-              {ch}
-            </span>
-          ))}
-        </p>
+        <label for="lsystem">L-System: </label>
+        <select
+          id="lsystem"
+          onChange={(e) => {
+            setSelectedSystem(Number(e.currentTarget.value));
+						setIterations(0);
+            setCurrentStroke(0);
+          }}
+        >
+          <option value="0">Dragon Curve</option>
+          <option value="1">Sierpinski Triangle</option>
+        </select>
       </div>
       <div className="text-center">
         <P5Canvas
-          sketch={dragonCurveGenerator({
-            moves: controlString,
-            strokeWidth,
-            curveColor,
-            bgColor,
-            sound,
-            currentStroke,
-          })}
+          sketch={p5CanvasManager(
+						L_SYSTEMS[selectedSystem],
+						controlString,
+						enableSound,
+						currentStroke,
+            {
+              strokeWidth,
+              curveColor,
+              bgColor,
+              canvasDimension: DIMENSION,
+            }
+          )}
         ></P5Canvas>
       </div>
       <div>
-				<hr></hr>
-        <div>
-          Dragon Curve Rules:
-          <ul>
-            <li>start: F</li>
-            <li>
-              for every... replace with...
-              <ul>
-                <li>F &rarr; F + G</li>
-                <li>G &rarr; F - G</li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-        <div>
-          Dragon Curve Symbols:
-          <dl>
-            <dt>F</dt>
-            <dd>visually: go forward by 10 pixels</dd>
-            <dd>musically: play transformed note</dd>
-
-            <dt>G</dt>
-            <dd>visually: go forward by 10 pixels</dd>
-            <dd>musically: play middle C</dd>
-
-            <dt>+</dt>
-            <dd>visually: turn left by 90 degrees</dd>
-            <dd>musically: move F note up by 1 whole note</dd>
-
-            <dt>-</dt>
-            <dd>visually: turn right by 90 degrees</dd>
-            <dd>musically: move F note down by 1 whole note</dd>
-          </dl>
-        </div>
+        <hr></hr>
+        {L_SYSTEMS[selectedSystem].description}
       </div>
     </div>
   );
 }
 
-const BASE_FREQUENCY = 262; // middle C
-const FREQUENCIES = [
-  BASE_FREQUENCY,
-  (BASE_FREQUENCY * 9) / 8,
-  (BASE_FREQUENCY * 5) / 4,
-  (BASE_FREQUENCY * 4) / 3,
-  (BASE_FREQUENCY * 3) / 2,
-  (BASE_FREQUENCY * 5) / 3,
-  (BASE_FREQUENCY * 15) / 8,
-  BASE_FREQUENCY * 2,
-];
-
-const dragonCurveGenerator = ({
-  moves,
-  strokeWidth,
-  curveColor,
-  bgColor,
-  sound,
-  currentStroke,
-}) => {
-  const DIMENSION = 600;
-
+const p5CanvasManager = (
+	currentSystem: LSystem<any>,
+	moves: string[],
+	enableSound: boolean,
+	currentStroke: number,
+  { strokeWidth, curveColor, bgColor, canvasDimension }: P5CanvasParameters
+) => {
   return (p: p5) => {
     p.setup = () => {
-      p.createCanvas(DIMENSION, DIMENSION);
+      p.createCanvas(canvasDimension, canvasDimension);
       p.background(bgColor);
 
       p.stroke(curveColor);
       p.strokeWeight(strokeWidth);
 
-      let currentX = DIMENSION / 2;
-      let currentY = DIMENSION / 2;
-      let currentAngle = -Math.PI / 2;
-
-      let currNote = 0; // index into frequencies
+      let renderState = currentSystem.createRenderState(canvasDimension);
 
       for (let i = 0; i < moves.length && i <= currentStroke; i++) {
         if (i === currentStroke) {
@@ -234,55 +199,15 @@ const dragonCurveGenerator = ({
 
         const move = moves[i];
 
-        switch (move) {
-          case "F":
-          case "G":
-            let oldX = currentX;
-            let oldY = currentY;
+        renderState = currentSystem.updateRenderState(p, move, renderState);
 
-            currentX += 10 * Math.cos(currentAngle);
-            currentY += 10 * Math.sin(currentAngle);
-
-            p.line(oldX, oldY, currentX, currentY);
-            break;
-          case "+":
-            currentAngle += Math.PI / 2;
-
-            currNote = (currNote + 1) % FREQUENCIES.length;
-            break;
-          case "-":
-            currentAngle -= Math.PI / 2;
-
-            currNote = (FREQUENCIES.length + currNote - 1) % FREQUENCIES.length;
-            break;
-          default:
-            console.error(`Unexpected move ${move}`);
-        }
-
-        if (sound && i == currentStroke) {
-          const now = Tone.now();
-          const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-          switch (move) {
-            case "F":
-              synth.triggerAttackRelease(FREQUENCIES[currNote], "8n", now);
-              break;
-            case "G":
-              synth.triggerAttackRelease(BASE_FREQUENCY, "8n", now);
-              break;
-            case "+":
-              break;
-            case "-":
-              break;
-            default:
-              console.error(`Unexpected move ${move}`);
-          }
+        if (enableSound && i == currentStroke) {
+          currentSystem.playSoundFromState(move, renderState);
         }
       }
     };
 
-    p.draw = () => {
-      // intentionally left blank
-    };
+    p.draw = () => {}; // intentionally left blank
   };
 };
 
