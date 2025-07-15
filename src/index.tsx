@@ -123,39 +123,40 @@ export function App() {
           onInput={(e) => setSkipToEnd(e.currentTarget.checked)}
         ></input>
         <hr></hr>
-        <div className="text-center">
-          <P5Canvas
-            sketch={dragonCurveGenerator({
-              moves: controlString,
-              strokeWidth,
-              curveColor,
-              bgColor,
-              sound,
-              currentStroke,
-            })}
-          ></P5Canvas>
-        </div>
       </div>
       <div>
-        <div>
-          <p style="text-align: left; border: 1px solid black; padding: 0.5em; width: 100%; height: 10ch; overflow-y: scroll;">
-            String:{" "}
-            {controlString.map((ch, idx) => (
-              <span
-                key={idx}
-                className={currentStroke === idx ? "highlighted" : ""}
-              >
-                {ch}
-              </span>
-            ))}
-          </p>
-        </div>
+        <p style="text-align: left; border: 1px solid black; padding: 0.5em; max-width: calc(100% - 5rem); height: 10ch; overflow-y: scroll;">
+          String:{" "}
+          {controlString.map((ch, idx) => (
+            <span
+              key={idx}
+              className={currentStroke === idx ? "highlighted" : ""}
+            >
+              {ch}
+            </span>
+          ))}
+        </p>
+      </div>
+      <div className="text-center">
+        <P5Canvas
+          sketch={dragonCurveGenerator({
+            moves: controlString,
+            strokeWidth,
+            curveColor,
+            bgColor,
+            sound,
+            currentStroke,
+          })}
+        ></P5Canvas>
+      </div>
+      <div>
+				<hr></hr>
         <div>
           Dragon Curve Rules:
           <ul>
             <li>start: F</li>
             <li>
-              for every...
+              for every... replace with...
               <ul>
                 <li>F &rarr; F + G</li>
                 <li>G &rarr; F - G</li>
@@ -167,11 +168,11 @@ export function App() {
           Dragon Curve Symbols:
           <dl>
             <dt>F</dt>
-            <dd>visually: go forward by 5</dd>
+            <dd>visually: go forward by 10 pixels</dd>
             <dd>musically: play transformed note</dd>
 
             <dt>G</dt>
-            <dd>visually: go forward by 5</dd>
+            <dd>visually: go forward by 10 pixels</dd>
             <dd>musically: play middle C</dd>
 
             <dt>+</dt>
@@ -188,6 +189,18 @@ export function App() {
   );
 }
 
+const BASE_FREQUENCY = 262; // middle C
+const FREQUENCIES = [
+  BASE_FREQUENCY,
+  (BASE_FREQUENCY * 9) / 8,
+  (BASE_FREQUENCY * 5) / 4,
+  (BASE_FREQUENCY * 4) / 3,
+  (BASE_FREQUENCY * 3) / 2,
+  (BASE_FREQUENCY * 5) / 3,
+  (BASE_FREQUENCY * 15) / 8,
+  BASE_FREQUENCY * 2,
+];
+
 const dragonCurveGenerator = ({
   moves,
   strokeWidth,
@@ -197,50 +210,6 @@ const dragonCurveGenerator = ({
   currentStroke,
 }) => {
   const DIMENSION = 600;
-
-  enum Direction {
-    Left = 0,
-    Up,
-    Right,
-    Down,
-  }
-
-  const turnLeft = (dir: Direction): Direction => (4 + dir - 1) % 4;
-  const turnRight = (dir: Direction): Direction => (dir + 1) % 4;
-
-  const BASE_FREQUENCY = 262; // middle C
-  const FREQUENCIES = [
-    BASE_FREQUENCY,
-    (BASE_FREQUENCY * 9) / 8,
-    (BASE_FREQUENCY * 5) / 4,
-    (BASE_FREQUENCY * 4) / 3,
-    (BASE_FREQUENCY * 3) / 2,
-    (BASE_FREQUENCY * 5) / 3,
-    (BASE_FREQUENCY * 15) / 8,
-    BASE_FREQUENCY * 2,
-  ];
-
-  const xDiff = (dir: Direction): number => {
-    switch (dir) {
-      case Direction.Left:
-        return -1;
-      case Direction.Right:
-        return 1;
-      default:
-        return 0;
-    }
-  };
-
-  const yDiff = (dir: Direction): number => {
-    switch (dir) {
-      case Direction.Up:
-        return -1;
-      case Direction.Down:
-        return 1;
-      default:
-        return 0;
-    }
-  };
 
   return (p: p5) => {
     p.setup = () => {
@@ -252,9 +221,9 @@ const dragonCurveGenerator = ({
 
       let currentX = DIMENSION / 2;
       let currentY = DIMENSION / 2;
-      let currentDir = Direction.Up;
+      let currentAngle = -Math.PI / 2;
 
-      let currNote = 0;
+      let currNote = 0; // index into frequencies
 
       for (let i = 0; i < moves.length && i <= currentStroke; i++) {
         if (i === currentStroke) {
@@ -271,19 +240,19 @@ const dragonCurveGenerator = ({
             let oldX = currentX;
             let oldY = currentY;
 
-            currentX += 10 * xDiff(currentDir);
-            currentY += 10 * yDiff(currentDir);
+            currentX += 10 * Math.cos(currentAngle);
+            currentY += 10 * Math.sin(currentAngle);
 
             p.line(oldX, oldY, currentX, currentY);
             break;
           case "+":
-            currentDir = turnLeft(currentDir);
-            // audio management
+            currentAngle += Math.PI / 2;
+
             currNote = (currNote + 1) % FREQUENCIES.length;
             break;
           case "-":
-            currentDir = turnRight(currentDir);
-            // audio management
+            currentAngle -= Math.PI / 2;
+
             currNote = (FREQUENCIES.length + currNote - 1) % FREQUENCIES.length;
             break;
           default:
