@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { drawCanvasLine, LSystem, maybeSynth } from "./utils";
+import { drawCanvasLine, LSystem, maybeSynth } from "../utils";
 
 const BASE_FREQUENCY = 262; // middle C
 const FREQUENCIES = [

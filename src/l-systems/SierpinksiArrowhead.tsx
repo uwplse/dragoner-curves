@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { drawCanvasLine, LSystem, maybeSynth } from "./utils";
+import { drawCanvasLine, LSystem, maybeSynth } from "../utils";
 
 const BASE_FREQUENCY = 262; // middle C
 const FREQUENCIES = [
@@ -13,40 +13,40 @@ const FREQUENCIES = [
   BASE_FREQUENCY * 2,
 ];
 
-type SierpinskiTriangleRenderState = {
+type SierpinskiArrowheadRenderState = {
   currentX: number;
   currentY: number;
   currentAngle: number;
   currentNote: number;
 };
 
-export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
-  initialState: ["X", "-", "Y", "-", "Y"],
-  description: <SierpinskiTriangleDescription />,
+export const SierpinskiArrowhead: LSystem<SierpinskiArrowheadRenderState> = {
+  initialState: ["X"],
+  description: <SierpinskiArrowheadDescription />,
   rules: (ch: string): string[] => {
      switch (ch) {
       case "X":
-        return ["X", "-", "Y", "+", "X", "+", "Y", "-", "X"];
+        return ["Y", "-", "X", "-", "Y"];
       case "Y":
-        return ["Y", "Y"];
+        return ["X", "+", "Y", "+", "X"];
       default:
         return [ch];
     }
   },
-  expansionLimit: 6,
-  createRenderState: (dimension: number): SierpinskiTriangleRenderState => {
+  expansionLimit: 12,
+  createRenderState: (dimension: number): SierpinskiArrowheadRenderState => {
     return {
-      currentX: dimension * 9 / 10,
-      currentY: dimension * 9 / 10,
-      currentAngle: -Math.PI / 2,
+      currentX: dimension / 10,
+      currentY: dimension / 2,
+      currentAngle: 0,
       currentNote: 0,
     };
   },
   updateStateAndRender: (
     ctx: CanvasRenderingContext2D,
     move: string,
-    renderState: SierpinskiTriangleRenderState
-  ): SierpinskiTriangleRenderState => {
+    renderState: SierpinskiArrowheadRenderState
+  ): SierpinskiArrowheadRenderState => {
     let { currentX, currentY, currentAngle, currentNote } = renderState;
     switch (move) {
       case "X":
@@ -54,20 +54,20 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
         let oldX = currentX;
         let oldY = currentY;
 
-        currentX += 10 * Math.cos(currentAngle);
-        currentY += 10 * Math.sin(currentAngle);
+        currentX += 5 * Math.cos(currentAngle);
+        currentY += 5 * Math.sin(currentAngle);
 
         drawCanvasLine(ctx, {x: oldX, y: oldY}, {x: currentX, y: currentY});
 
         break;
       case "+":
-        currentAngle += Math.PI * 2 / 3;
+        currentAngle += Math.PI / 3;
 
         currentNote = (currentNote + 1) % FREQUENCIES.length;
 
         break;
       case "-":
-        currentAngle -= Math.PI * 2 / 3;
+        currentAngle -= Math.PI / 3;
 
         currentNote =
           (FREQUENCIES.length + currentNote - 1) % FREQUENCIES.length;
@@ -79,7 +79,7 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
 
     return { currentX, currentY, currentAngle, currentNote };
   },
-  playSoundFromState: (synth: maybeSynth, move: string, renderState: SierpinskiTriangleRenderState) => {
+  playSoundFromState: (synth: maybeSynth, move: string, renderState: SierpinskiArrowheadRenderState) => {
     const now = Tone.now();
     switch (move) {
       case "X":
@@ -98,39 +98,39 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
   },
 };
 
-export function SierpinskiTriangleDescription() {
+export function SierpinskiArrowheadDescription() {
   return (
     <>
       <div>
-        Sierpinski Triangle Rules:
+        Sierpinski Arrowhead Rules:
         <ul>
-          <li>start: X - Y - Y</li>
+          <li>start: X</li>
           <li>
             for every... replace with...
             <ul>
-              <li>X &rarr; X - Y + X + Y - X</li>
-              <li>Y &rarr; Y Y</li>
+              <li>X &rarr; Y - X - Y</li>
+              <li>Y &rarr; X - Y - X</li>
             </ul>
           </li>
         </ul>
       </div>
       <div>
-        Sierpinski Triangle Symbols:
+        Sierpinski Arrowhead Symbols:
         <dl>
           <dt>X</dt>
-          <dd>visually: go forward by 10 pixels</dd>
+          <dd>visually: go forward by 5 pixels</dd>
           <dd>musically: play transformed note</dd>
 
           <dt>Y</dt>
-          <dd>visually: go forward by 10 pixels</dd>
+          <dd>visually: go forward by 5 pixels</dd>
           <dd>musically: play transformed note</dd>
 
           <dt>+</dt>
-          <dd>visually: turn left by 120 degrees</dd>
+          <dd>visually: turn left by 60 degrees</dd>
           <dd>musically: move note up by 1 whole note</dd>
 
           <dt>-</dt>
-          <dd>visually: turn right by 120 degrees</dd>
+          <dd>visually: turn right by 60 degrees</dd>
           <dd>musically: move note down by 1 whole note</dd>
         </dl>
       </div>

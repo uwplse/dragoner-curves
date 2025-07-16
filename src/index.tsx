@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import * as Tone from "tone";
 
 import "./style.css";
-import { DragonCurve } from "./DragonCurve";
-import { SierpinskiTriangle } from "./SierpinskiTriangle";
+import { DragonCurve } from "./l-systems/DragonCurve";
+import { SierpinskiTriangle } from "./l-systems/SierpinskiTriangle";
 import { maybeSynth, LSystem } from "./utils";
-import { FriendlyFern } from "./FriendlyFern";
+import { FriendlyFern } from "./l-systems/FriendlyFern";
 import CanvasManager from "./CanvasManager";
+import { SierpinskiArrowhead } from "./l-systems/SierpinksiArrowhead";
 
 type P5CanvasParameters = {
   curveColor: string;
@@ -18,7 +19,7 @@ type P5CanvasParameters = {
 
 const DIMENSION = 600;
 
-const L_SYSTEMS: LSystem<any>[] = [DragonCurve, SierpinskiTriangle, FriendlyFern];
+const L_SYSTEMS: {name: string, system: LSystem<any>}[] = [ { name: "Dragon Curve", system: DragonCurve }, { name: "Sierpinski Triangle", system: SierpinskiTriangle}, { name: "Sierpinksi Arrowhead", system:SierpinskiArrowhead }, { name: "Friendly Fern", system: FriendlyFern}];
 
 export function App() {
   const [iterations, setIterations] = useState(0);
@@ -42,10 +43,10 @@ export function App() {
   const [selectedSystem, setSelectedSystem] = useState(0);
 
   const controlString = useMemo(() => {
-    let state: string[] = L_SYSTEMS[selectedSystem].initialState;
+    let state: string[] = L_SYSTEMS[selectedSystem].system.initialState;
 
     for (let i = 0; i < iterations; i++) {
-      state = state.flatMap(L_SYSTEMS[selectedSystem].rules);
+      state = state.flatMap(L_SYSTEMS[selectedSystem].system.rules);
     }
 
     return state;
@@ -62,7 +63,7 @@ export function App() {
   }, [currentStroke, iterations, selectedSystem]);
 
   const setIterationsClamped = (newIterations: number) => {
-    if (newIterations <= L_SYSTEMS[selectedSystem].expansionLimit) {
+    if (newIterations <= L_SYSTEMS[selectedSystem].system.expansionLimit) {
       setIterations(newIterations);
     }
     setCurrentStroke(0);
@@ -93,9 +94,7 @@ export function App() {
             setCurrentStroke(0);
           }}
         >
-          <option value="0">Dragon Curve</option>
-          <option value="1">Sierpinski Triangle</option>
-          <option value="2">Friendly Fern</option>
+          {L_SYSTEMS.map(({ name }, i) => <option value={i} key={i}>{name}</option>)}
         </select>{" | "}
         {Math.min(currentStroke, controlString.length)}/{controlString.length}{" "}
         moves completed
@@ -153,10 +152,10 @@ export function App() {
         ></input>
       </div>
       <div className="text-center">
-        <CanvasManager currentSystem={L_SYSTEMS[selectedSystem]} moves={controlString} synth={synth} currentStroke={currentStroke} canvasParameters={{curveColor, bgColor, canvasDimension: DIMENSION}}></CanvasManager>
+        <CanvasManager currentSystem={L_SYSTEMS[selectedSystem].system} moves={controlString} synth={synth} currentStroke={currentStroke} canvasParameters={{curveColor, bgColor, canvasDimension: DIMENSION}}></CanvasManager>
       </div>
       <div class="content-box">
-        {L_SYSTEMS[selectedSystem].description}
+        {L_SYSTEMS[selectedSystem].system.description}
       </div>
     </div>
   );
