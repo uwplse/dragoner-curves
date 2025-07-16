@@ -1,6 +1,5 @@
-import p5 from "p5";
 import * as Tone from "tone";
-import { LSystem } from "./utils";
+import { drawCanvasLine, LSystem, maybeSynth } from "./utils";
 
 const BASE_FREQUENCY = 262; // middle C
 const FREQUENCIES = [
@@ -14,7 +13,7 @@ const FREQUENCIES = [
   BASE_FREQUENCY * 2,
 ];
 
-type BarnsleyFernRenderState = {
+type FriendlyFernRenderState = {
   currentX: number;
   currentY: number;
   currentAngle: number;
@@ -23,9 +22,9 @@ type BarnsleyFernRenderState = {
 
 const TWENTY_FIVE_DEG_IN_RAD = 25 * Math.PI / 180;
 
-export const BarnsleyFern: LSystem<BarnsleyFernRenderState> = {
+export const FriendlyFern: LSystem<FriendlyFernRenderState> = {
   initialState: ["-", "X"],
-  description: <BarnsleyFernDescription />,
+  description: <FriendlyFernDescription />,
   rules: (ch: string): string[] => {
     switch (ch) {
       case "X":
@@ -37,7 +36,7 @@ export const BarnsleyFern: LSystem<BarnsleyFernRenderState> = {
     }
   },
   expansionLimit: 6,
-  createRenderState: (dimension: number): BarnsleyFernRenderState => {
+  createRenderState: (dimension: number): FriendlyFernRenderState => {
     return [{
       currentX: dimension / 10,
       currentY: dimension * 9 / 10,
@@ -45,11 +44,11 @@ export const BarnsleyFern: LSystem<BarnsleyFernRenderState> = {
       currentNote: 0,
     }];
   },
-  updateRenderState: (
-    p: p5,
+  updateStateAndRender: (
+    ctx: CanvasRenderingContext2D,
     move: string,
-    renderState: BarnsleyFernRenderState
-  ): BarnsleyFernRenderState => {
+    renderState: FriendlyFernRenderState
+  ): FriendlyFernRenderState => {
     let { currentX, currentY, currentAngle, currentNote } = renderState[0];
     switch (move) {
       case "X":
@@ -61,7 +60,7 @@ export const BarnsleyFern: LSystem<BarnsleyFernRenderState> = {
         currentX += 5 * Math.cos(currentAngle);
         currentY -= 5 * Math.sin(currentAngle); // flipped - graphics vs math origin shenanigans
 
-        p.line(oldX, oldY, currentX, currentY);
+        drawCanvasLine(ctx, {x: oldX, y: oldY}, {x: currentX, y: currentY});
 
         break;
       case "+":
@@ -87,12 +86,10 @@ export const BarnsleyFern: LSystem<BarnsleyFernRenderState> = {
 
     return [{ currentX, currentY, currentAngle, currentNote }].concat(renderState.slice(1));
   },
-  playSoundFromState: (move: string, renderState: BarnsleyFernRenderState) => {
+  playSoundFromState: (synth: maybeSynth, move: string, renderState: FriendlyFernRenderState) => {
     const now = Tone.now();
-    const synth = new Tone.PolySynth(Tone.Synth).toDestination();
     switch (move) {
       case "X":
-        // synth.triggerAttackRelease(FREQUENCIES[renderState.currentNote], "8n", now);
         break;
       case "Y":
         synth.triggerAttackRelease(FREQUENCIES[renderState[0].currentNote], "8n", now);
@@ -108,7 +105,7 @@ export const BarnsleyFern: LSystem<BarnsleyFernRenderState> = {
   },
 };
 
-export function BarnsleyFernDescription() {
+export function FriendlyFernDescription() {
   return (
     <>
       TBD

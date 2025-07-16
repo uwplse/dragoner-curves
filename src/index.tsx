@@ -1,17 +1,16 @@
 import { render } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 
-import p5 from "p5";
+import * as Tone from "tone";
 
 import "./style.css";
-import P5Canvas from "./P5Canvas";
 import { DragonCurve } from "./DragonCurve";
 import { SierpinskiTriangle } from "./SierpinskiTriangle";
-import { LSystem } from "./utils";
-import { BarnsleyFern } from "./BarnsleyFern";
+import { maybeSynth, LSystem } from "./utils";
+import { FriendlyFern } from "./FriendlyFern";
+import CanvasManager from "./CanvasManager";
 
 type P5CanvasParameters = {
-  strokeWidth: number;
   curveColor: string;
   bgColor: string;
   canvasDimension: number;
@@ -19,15 +18,23 @@ type P5CanvasParameters = {
 
 const DIMENSION = 600;
 
-const L_SYSTEMS: LSystem<any>[] = [DragonCurve, SierpinskiTriangle, BarnsleyFern];
+const L_SYSTEMS: LSystem<any>[] = [DragonCurve, SierpinskiTriangle, FriendlyFern];
 
 export function App() {
   const [iterations, setIterations] = useState(0);
-  const [enableSound, setEnableSound] = useState(false);
 
-  const [strokeWidth, setStrokeWidth] = useState(1);
   const [curveColor, setCurveColor] = useState("#FF0000");
   const [bgColor, setBgColor] = useState("#FCFCFC");
+
+  const [synth, setSynth] = useState<maybeSynth>(null);
+
+  const toggleSynth = (enable: boolean) => {
+    if (enable) {
+      setSynth(new Tone.PolySynth(Tone.Synth).toDestination());
+    } else {
+      setSynth(null);
+    }
+  }
 
   const [currentStroke, setCurrentStroke] = useState(0);
   const [updateFrequency, setUpdateFrequency] = useState(4);
@@ -88,17 +95,9 @@ export function App() {
         >
           <option value="0">Dragon Curve</option>
           <option value="1">Sierpinski Triangle</option>
-          <option value="2">Barnsley Fern</option>
+          <option value="2">Friendly Fern</option>
         </select>{" | "}
-        <label for="freq">Frequency (Hz): </label>
-        <input
-          id="freq"
-          type="number"
-          value={updateFrequency}
-          onInput={(e) => setUpdateFrequency(Number(e.currentTarget.value))}
-          style="width: 5ch;"
-        ></input>{" "}
-        | {Math.min(currentStroke, controlString.length)}/{controlString.length}{" "}
+        {Math.min(currentStroke, controlString.length)}/{controlString.length}{" "}
         moves completed
         <hr></hr>
         <label for="iterations">Iterations: </label>
@@ -121,15 +120,15 @@ export function App() {
         >
           Reset
         </button>{" "}
-        <hr></hr>
-        {/* <label for="stroke-width">Stroke Width: </label>
+        <label for="freq">Frequency (Hz): </label>
         <input
-          id="stroke-width"
+          id="freq"
           type="number"
-          value={strokeWidth}
-          onInput={(e) => setStrokeWidth(Number(e.currentTarget.value))}
+          value={updateFrequency}
+          onInput={(e) => setUpdateFrequency(Number(e.currentTarget.value))}
           style="width: 5ch;"
         ></input>{" "}
+        <hr></hr>
         <label for="stroke-color">Curve color: </label>
         <input
           id="stroke-color"
@@ -144,30 +143,17 @@ export function App() {
           value={bgColor}
           onInput={(e) => setBgColor(e.currentTarget.value)}
         ></input>
-        <hr></hr> */}
+        <hr></hr>
         <label for="sound">Enable Sound: </label>
         <input
           id="sound"
           type="checkbox"
-          checked={enableSound}
-          onInput={(e) => setEnableSound(e.currentTarget.checked)}
+          checked={synth !== null}
+          onInput={(e) => toggleSynth(e.currentTarget.checked)}
         ></input>
       </div>
       <div className="text-center">
-        <P5Canvas
-          sketch={p5CanvasManager(
-						L_SYSTEMS[selectedSystem],
-						controlString,
-						enableSound,
-						currentStroke,
-            {
-              strokeWidth,
-              curveColor,
-              bgColor,
-              canvasDimension: DIMENSION,
-            }
-          )}
-        ></P5Canvas>
+        <CanvasManager currentSystem={L_SYSTEMS[selectedSystem]} moves={controlString} synth={synth} currentStroke={currentStroke} canvasParameters={{curveColor, bgColor, canvasDimension: DIMENSION}}></CanvasManager>
       </div>
       <div class="content-box">
         {L_SYSTEMS[selectedSystem].description}
@@ -175,43 +161,5 @@ export function App() {
     </div>
   );
 }
-
-const p5CanvasManager = (
-	currentSystem: LSystem<any>,
-	moves: string[],
-	enableSound: boolean,
-	currentStroke: number,
-  { strokeWidth, curveColor, bgColor, canvasDimension }: P5CanvasParameters
-) => {
-  return (p: p5) => {
-    p.setup = () => {
-      p.createCanvas(canvasDimension, canvasDimension);
-      p.background(bgColor);
-
-      p.stroke(curveColor);
-      p.strokeWeight(strokeWidth);
-
-      let renderState = currentSystem.createRenderState(canvasDimension);
-
-      for (let i = 0; i < moves.length && i <= currentStroke; i++) {
-        if (i === currentStroke) {
-          p.stroke("#000000");
-        } else {
-          p.stroke(curveColor);
-        }
-
-        const move = moves[i];
-
-        renderState = currentSystem.updateRenderState(p, move, renderState);
-
-        if (enableSound && i == currentStroke) {
-          currentSystem.playSoundFromState(move, renderState);
-        }
-      }
-    };
-
-    p.draw = () => {}; // intentionally left blank
-  };
-};
 
 render(<App />, document.getElementById("app"));

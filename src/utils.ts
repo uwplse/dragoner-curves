@@ -1,5 +1,7 @@
-import p5 from "p5";
+import * as Tone from "tone";
 import { JSX } from "preact";
+
+export type maybeSynth = Tone.PolySynth<Tone.Synth<Tone.SynthOptions>> | null;
 
 export type LSystem<RenderState> = {
   /**
@@ -39,13 +41,26 @@ export type LSystem<RenderState> = {
    * @param renderState the renderState *prior* to the current move.
    * @returns the new renderState *after* the move is completed.
    */
-  updateRenderState: (p: p5, move: string, renderState: RenderState) => RenderState;
+  updateStateAndRender: (ctx: CanvasRenderingContext2D, move: string, renderState: RenderState) => RenderState;
 
   /**
    * Play the sound from the current move. This function is *only* called when the current move is the last move processed by p5; this method does not need to handle timing.
+   * @param synth null if sound is disabled, else the Tone.js synth to play sounds through
    * @param move the current move to play the sound for
    * @param renderState the corresponding renderState for this move.
    * @returns
    */
-  playSoundFromState: (move: string, renderState: RenderState) => void;
+  playSoundFromState: (synth: maybeSynth, move: string, renderState: RenderState) => void;
 };
+
+type PointRecord = {
+  x: number;
+  y: number;
+}
+
+export const drawCanvasLine = (ctx: CanvasRenderingContext2D, p1: PointRecord, p2: PointRecord ) => {
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.lineTo(p2.x, p2.y);
+  ctx.stroke();
+}

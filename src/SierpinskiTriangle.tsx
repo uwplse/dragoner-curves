@@ -1,6 +1,5 @@
-import p5 from "p5";
 import * as Tone from "tone";
-import { LSystem } from "./utils";
+import { drawCanvasLine, LSystem, maybeSynth } from "./utils";
 
 const BASE_FREQUENCY = 262; // middle C
 const FREQUENCIES = [
@@ -43,8 +42,8 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
       currentNote: 0,
     };
   },
-  updateRenderState: (
-    p: p5,
+  updateStateAndRender: (
+    ctx: CanvasRenderingContext2D,
     move: string,
     renderState: SierpinskiTriangleRenderState
   ): SierpinskiTriangleRenderState => {
@@ -58,7 +57,7 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
         currentX += 10 * Math.cos(currentAngle);
         currentY += 10 * Math.sin(currentAngle);
 
-        p.line(oldX, oldY, currentX, currentY);
+        drawCanvasLine(ctx, {x: oldX, y: oldY}, {x: currentX, y: currentY});
 
         break;
       case "+":
@@ -80,9 +79,8 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
 
     return { currentX, currentY, currentAngle, currentNote };
   },
-  playSoundFromState: (move: string, renderState: SierpinskiTriangleRenderState) => {
+  playSoundFromState: (synth: maybeSynth, move: string, renderState: SierpinskiTriangleRenderState) => {
     const now = Tone.now();
-    const synth = new Tone.PolySynth(Tone.Synth).toDestination();
     switch (move) {
       case "X":
       case "Y":
