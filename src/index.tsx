@@ -10,16 +10,17 @@ import { maybeSynth, LSystem } from "./utils";
 import { FriendlyFern } from "./l-systems/FriendlyFern";
 import CanvasManager from "./CanvasManager";
 import { SierpinskiArrowhead } from "./l-systems/SierpinksiArrowhead";
-
-type P5CanvasParameters = {
-  curveColor: string;
-  bgColor: string;
-  canvasDimension: number;
-};
+import { HilbertCurve } from "./l-systems/HilbertCurve";
 
 const DIMENSION = 600;
 
-const L_SYSTEMS: {name: string, system: LSystem<any>}[] = [ { name: "Dragon Curve", system: DragonCurve }, { name: "Sierpinski Triangle", system: SierpinskiTriangle}, { name: "Sierpinksi Arrowhead", system:SierpinskiArrowhead }, { name: "Friendly Fern", system: FriendlyFern}];
+const L_SYSTEMS: { name: string; system: LSystem<any> }[] = [
+  { name: "Dragon Curve", system: DragonCurve },
+  { name: "Sierpinski Triangle", system: SierpinskiTriangle },
+  { name: "Sierpinksi Arrowhead", system: SierpinskiArrowhead },
+  { name: "Friendly Fern", system: FriendlyFern },
+  { name: "Hilbert Curve", system: HilbertCurve },
+];
 
 export function App() {
   const [iterations, setIterations] = useState(0);
@@ -35,7 +36,7 @@ export function App() {
     } else {
       setSynth(null);
     }
-  }
+  };
 
   const [currentStroke, setCurrentStroke] = useState(0);
   const [updateFrequency, setUpdateFrequency] = useState(4);
@@ -56,7 +57,10 @@ export function App() {
     let timeout = null;
 
     if (currentStroke < controlString.length) {
-      timeout = setTimeout(() => setCurrentStroke(currentStroke + 1), 1000 / updateFrequency);
+      timeout = setTimeout(
+        () => setCurrentStroke(currentStroke + 1),
+        1000 / updateFrequency
+      );
     }
 
     return () => clearTimeout(timeout);
@@ -90,12 +94,17 @@ export function App() {
           id="lsystem"
           onChange={(e) => {
             setSelectedSystem(Number(e.currentTarget.value));
-						setIterations(0);
+            setIterations(0);
             setCurrentStroke(0);
           }}
         >
-          {L_SYSTEMS.map(({ name }, i) => <option value={i} key={i}>{name}</option>)}
-        </select>{" | "}
+          {L_SYSTEMS.map(({ name }, i) => (
+            <option value={i} key={i}>
+              {name}
+            </option>
+          ))}
+        </select>
+        {" | "}
         {Math.min(currentStroke, controlString.length)}/{controlString.length}{" "}
         moves completed
         <hr></hr>
@@ -110,7 +119,9 @@ export function App() {
         <button onClick={() => setIterationsClamped(iterations + 1)}>
           Expand Once
         </button>{" "}
-        <button onClick={() => setCurrentStroke(controlString.length + 1)}>Skip to End</button>{" "}
+        <button onClick={() => setCurrentStroke(controlString.length + 1)}>
+          Skip to End
+        </button>{" "}
         <button
           onClick={() => {
             setIterations(0);
@@ -152,7 +163,13 @@ export function App() {
         ></input>
       </div>
       <div className="text-center">
-        <CanvasManager currentSystem={L_SYSTEMS[selectedSystem].system} moves={controlString} synth={synth} currentStroke={currentStroke} canvasParameters={{curveColor, bgColor, canvasDimension: DIMENSION}}></CanvasManager>
+        <CanvasManager
+          currentSystem={L_SYSTEMS[selectedSystem].system}
+          moves={controlString}
+          synth={synth}
+          currentStroke={currentStroke}
+          canvasParameters={{ curveColor, bgColor, canvasDimension: DIMENSION }}
+        ></CanvasManager>
       </div>
       <div class="content-box">
         {L_SYSTEMS[selectedSystem].system.description}
