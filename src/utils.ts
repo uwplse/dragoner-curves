@@ -41,7 +41,7 @@ export type LSystem<RenderState> = {
    * @param renderState the renderState *prior* to the current move.
    * @returns the new renderState *after* the move is completed.
    */
-  updateStateAndRender: (ctx: CanvasRenderingContext2D, move: string, renderState: RenderState) => RenderState;
+  updateStateAndRender: (ctx: CanvasRenderingContext2D, move: string, renderState: RenderState, scale: Tone.Unit.Frequency[]) => RenderState;
 
   /**
    * Play the sound from the current move. This function is *only* called when the current move is the last move processed by p5; this method does not need to handle timing.
@@ -50,7 +50,7 @@ export type LSystem<RenderState> = {
    * @param renderState the corresponding renderState for this move.
    * @returns
    */
-  playSoundFromState: (synth: maybeSynth, move: string, renderState: RenderState) => void;
+  playSoundFromState: (synth: maybeSynth, move: string, renderState: RenderState, scale: Tone.Unit.Frequency[]) => void;
 };
 
 type PointRecord = {

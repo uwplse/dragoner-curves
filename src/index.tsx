@@ -11,6 +11,7 @@ import { FriendlyFern } from "./l-systems/FriendlyFern";
 import CanvasManager from "./CanvasManager";
 import { SierpinskiArrowhead } from "./l-systems/SierpinksiArrowhead";
 import { HilbertCurve } from "./l-systems/HilbertCurve";
+import { SCALES } from "./scales";
 
 const DIMENSION = 600;
 
@@ -42,6 +43,7 @@ export function App() {
   const [updateFrequency, setUpdateFrequency] = useState(4);
 
   const [selectedSystem, setSelectedSystem] = useState(0);
+  const [selectedMusicalScale, setSelectedMusicalScale] = useState(0);
 
   const controlString = useMemo(() => {
     let state: string[] = L_SYSTEMS[selectedSystem].system.initialState;
@@ -161,10 +163,26 @@ export function App() {
           checked={synth !== null}
           onInput={(e) => toggleSynth(e.currentTarget.checked)}
         ></input>
+        {" | "}
+        <label for="MusicalScale">Scale (experimental): </label>
+        <select
+          id="MusicalScale"
+          onChange={(e) => {
+            setSelectedMusicalScale(Number(e.currentTarget.value));
+            setCurrentStroke(0);
+          }}
+        >
+          {SCALES.map(({ name }, i) => (
+            <option value={i} key={i}>
+              {name}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="text-center">
         <CanvasManager
           currentSystem={L_SYSTEMS[selectedSystem].system}
+          musicalScale={SCALES[selectedMusicalScale].scale}
           moves={controlString}
           synth={synth}
           currentStroke={currentStroke}

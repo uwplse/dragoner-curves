@@ -1,18 +1,6 @@
 import * as Tone from "tone";
 import { drawCanvasLine, LSystem, maybeSynth } from "../utils";
 
-const BASE_FREQUENCY = 262; // middle C
-const FREQUENCIES = [
-  BASE_FREQUENCY,
-  (BASE_FREQUENCY * 9) / 8,
-  (BASE_FREQUENCY * 5) / 4,
-  (BASE_FREQUENCY * 4) / 3,
-  (BASE_FREQUENCY * 3) / 2,
-  (BASE_FREQUENCY * 5) / 3,
-  (BASE_FREQUENCY * 15) / 8,
-  BASE_FREQUENCY * 2,
-];
-
 type DragonCurveRenderState = {
   currentX: number;
   currentY: number;
@@ -45,7 +33,8 @@ export const DragonCurve: LSystem<DragonCurveRenderState> = {
   updateStateAndRender: (
     ctx: CanvasRenderingContext2D,
     move: string,
-    renderState: DragonCurveRenderState
+    renderState: DragonCurveRenderState,
+    scale: Tone.Unit.Frequency[]
   ): DragonCurveRenderState => {
     let { currentX, currentY, currentAngle, currentNote } = renderState;
     switch (move) {
@@ -57,20 +46,19 @@ export const DragonCurve: LSystem<DragonCurveRenderState> = {
         currentX += 10 * Math.cos(currentAngle);
         currentY += 10 * Math.sin(currentAngle);
 
-        drawCanvasLine(ctx, {x: oldX, y: oldY}, {x: currentX, y: currentY});
+        drawCanvasLine(ctx, { x: oldX, y: oldY }, { x: currentX, y: currentY });
 
         break;
       case "+":
         currentAngle += Math.PI / 2;
 
-        currentNote = (currentNote + 1) % FREQUENCIES.length;
+        currentNote = (currentNote + 1) % scale.length;
 
         break;
       case "-":
         currentAngle -= Math.PI / 2;
 
-        currentNote =
-          (FREQUENCIES.length + currentNote - 1) % FREQUENCIES.length;
+        currentNote = (scale.length + currentNote - 1) % scale.length;
 
         break;
       default:
@@ -79,14 +67,19 @@ export const DragonCurve: LSystem<DragonCurveRenderState> = {
 
     return { currentX, currentY, currentAngle, currentNote };
   },
-  playSoundFromState: (synth: maybeSynth, move: string, renderState: DragonCurveRenderState) => {
+  playSoundFromState: (
+    synth: maybeSynth,
+    move: string,
+    renderState: DragonCurveRenderState,
+    scale: Tone.Unit.Frequency[]
+  ) => {
     const now = Tone.now();
     switch (move) {
       case "X":
-        synth.triggerAttackRelease(FREQUENCIES[renderState.currentNote], "8n", now);
+        synth.triggerAttackRelease(scale[renderState.currentNote], "8n", now);
         break;
       case "Y":
-        synth.triggerAttackRelease(BASE_FREQUENCY, "8n", now);
+        synth.triggerAttackRelease(scale[0], "8n", now);
         break;
       case "+":
       case "-":

@@ -1,18 +1,6 @@
 import * as Tone from "tone";
 import { drawCanvasLine, LSystem, maybeSynth } from "../utils";
 
-const BASE_FREQUENCY = 262; // middle C
-const FREQUENCIES = [
-  BASE_FREQUENCY,
-  (BASE_FREQUENCY * 9) / 8,
-  (BASE_FREQUENCY * 5) / 4,
-  (BASE_FREQUENCY * 4) / 3,
-  (BASE_FREQUENCY * 3) / 2,
-  (BASE_FREQUENCY * 5) / 3,
-  (BASE_FREQUENCY * 15) / 8,
-  BASE_FREQUENCY * 2,
-];
-
 type HilbertCurveRenderState = {
   currentX: number;
   currentY: number;
@@ -45,7 +33,8 @@ export const HilbertCurve: LSystem<HilbertCurveRenderState> = {
   updateStateAndRender: (
     ctx: CanvasRenderingContext2D,
     move: string,
-    renderState: HilbertCurveRenderState
+    renderState: HilbertCurveRenderState,
+    scale: Tone.Unit.Frequency[]
   ): HilbertCurveRenderState => {
     let { currentX, currentY, currentAngle, currentNote } = renderState;
     switch (move) {
@@ -65,14 +54,13 @@ export const HilbertCurve: LSystem<HilbertCurveRenderState> = {
       case "+":
         currentAngle += Math.PI / 2;
 
-        currentNote = (currentNote + 1) % FREQUENCIES.length;
+        currentNote = (currentNote + 1) % scale.length;
 
         break;
       case "-":
         currentAngle -= Math.PI / 2;
 
-        currentNote =
-          (FREQUENCIES.length + currentNote - 1) % FREQUENCIES.length;
+        currentNote = (scale.length + currentNote - 1) % scale.length;
 
         break;
       default:
@@ -84,16 +72,13 @@ export const HilbertCurve: LSystem<HilbertCurveRenderState> = {
   playSoundFromState: (
     synth: maybeSynth,
     move: string,
-    renderState: HilbertCurveRenderState
+    renderState: HilbertCurveRenderState,
+    scale: Tone.Unit.Frequency[]
   ) => {
     const now = Tone.now();
     switch (move) {
       case "F":
-        synth.triggerAttackRelease(
-          FREQUENCIES[renderState.currentNote],
-          "8n",
-          now
-        );
+        synth.triggerAttackRelease(scale[renderState.currentNote], "8n", now);
         break;
       case "A":
       case "B":

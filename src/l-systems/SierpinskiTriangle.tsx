@@ -1,18 +1,6 @@
 import * as Tone from "tone";
 import { drawCanvasLine, LSystem, maybeSynth } from "../utils";
 
-const BASE_FREQUENCY = 262; // middle C
-const FREQUENCIES = [
-  BASE_FREQUENCY,
-  (BASE_FREQUENCY * 9) / 8,
-  (BASE_FREQUENCY * 5) / 4,
-  (BASE_FREQUENCY * 4) / 3,
-  (BASE_FREQUENCY * 3) / 2,
-  (BASE_FREQUENCY * 5) / 3,
-  (BASE_FREQUENCY * 15) / 8,
-  BASE_FREQUENCY * 2,
-];
-
 type SierpinskiTriangleRenderState = {
   currentX: number;
   currentY: number;
@@ -24,7 +12,7 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
   initialState: ["X", "-", "Y", "-", "Y"],
   description: <SierpinskiTriangleDescription />,
   rules: (ch: string): string[] => {
-     switch (ch) {
+    switch (ch) {
       case "X":
         return ["X", "-", "Y", "+", "X", "+", "Y", "-", "X"];
       case "Y":
@@ -36,8 +24,8 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
   expansionLimit: 6,
   createRenderState: (dimension: number): SierpinskiTriangleRenderState => {
     return {
-      currentX: dimension * 9 / 10,
-      currentY: dimension * 9 / 10,
+      currentX: (dimension * 9) / 10,
+      currentY: (dimension * 9) / 10,
       currentAngle: -Math.PI / 2,
       currentNote: 0,
     };
@@ -45,7 +33,8 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
   updateStateAndRender: (
     ctx: CanvasRenderingContext2D,
     move: string,
-    renderState: SierpinskiTriangleRenderState
+    renderState: SierpinskiTriangleRenderState,
+    scale: Tone.Unit.Frequency[]
   ): SierpinskiTriangleRenderState => {
     let { currentX, currentY, currentAngle, currentNote } = renderState;
     switch (move) {
@@ -57,20 +46,19 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
         currentX += 10 * Math.cos(currentAngle);
         currentY += 10 * Math.sin(currentAngle);
 
-        drawCanvasLine(ctx, {x: oldX, y: oldY}, {x: currentX, y: currentY});
+        drawCanvasLine(ctx, { x: oldX, y: oldY }, { x: currentX, y: currentY });
 
         break;
       case "+":
-        currentAngle += Math.PI * 2 / 3;
+        currentAngle += (Math.PI * 2) / 3;
 
-        currentNote = (currentNote + 1) % FREQUENCIES.length;
+        currentNote = (currentNote + 1) % scale.length;
 
         break;
       case "-":
-        currentAngle -= Math.PI * 2 / 3;
+        currentAngle -= (Math.PI * 2) / 3;
 
-        currentNote =
-          (FREQUENCIES.length + currentNote - 1) % FREQUENCIES.length;
+        currentNote = (scale.length + currentNote - 1) % scale.length;
 
         break;
       default:
@@ -79,12 +67,17 @@ export const SierpinskiTriangle: LSystem<SierpinskiTriangleRenderState> = {
 
     return { currentX, currentY, currentAngle, currentNote };
   },
-  playSoundFromState: (synth: maybeSynth, move: string, renderState: SierpinskiTriangleRenderState) => {
+  playSoundFromState: (
+    synth: maybeSynth,
+    move: string,
+    renderState: SierpinskiTriangleRenderState,
+    scale: Tone.Unit.Frequency[]
+  ) => {
     const now = Tone.now();
     switch (move) {
       case "X":
       case "Y":
-        synth.triggerAttackRelease(FREQUENCIES[renderState.currentNote], "8n", now);
+        synth.triggerAttackRelease(scale[renderState.currentNote], "8n", now);
         break;
       // case "Y":
       //   synth.triggerAttackRelease(BASE_FREQUENCY, "8n", now);

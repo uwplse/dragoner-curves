@@ -1,6 +1,7 @@
+import * as Tone from "tone";
+
 import { useEffect, useRef, useState } from "preact/hooks";
 import { LSystem, maybeSynth } from "./utils";
-
 type CanvasParameters = {
   curveColor: string;
   bgColor: string;
@@ -10,6 +11,7 @@ type CanvasParameters = {
 type CanvasManagerProps = {
   currentSystem: LSystem<any>;
   moves: string[];
+  musicalScale: Tone.Unit.Frequency[];
   synth: maybeSynth;
   currentStroke: number;
   canvasParameters: CanvasParameters;
@@ -40,6 +42,7 @@ const initialCanvasState = {
 export default function CanvasManager({
   currentSystem,
   moves,
+  musicalScale,
   synth,
   currentStroke,
   canvasParameters,
@@ -157,7 +160,8 @@ export default function CanvasManager({
       renderState = currentSystem.updateStateAndRender(
         contextRef.current,
         move,
-        renderState
+        renderState,
+        musicalScale
       );
 
       if (
@@ -165,12 +169,13 @@ export default function CanvasManager({
         i === currentStroke &&
         i !== lastPlayedStroke.current
       ) {
-        currentSystem.playSoundFromState(synth, move, renderState);
+        currentSystem.playSoundFromState(synth, move, renderState, musicalScale);
         lastPlayedStroke.current = i;
       }
     }
   }, [
     currentSystem,
+    musicalScale,
     moves,
     synth,
     currentStroke,
