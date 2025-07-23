@@ -194,7 +194,7 @@ export default function CanvasManager({
         style={"cursor: grab;"}
       />
       <p style="margin: 0.5rem;">
-        (experimental) drag to pan, mouse wheel to zoom.
+        drag to pan, mouse wheel to zoom.
       </p>
       <button onClick={() => setCanvasState(initialCanvasState)}>
         Reset Canvas
