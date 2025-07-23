@@ -45,6 +45,10 @@ export const FriendlyFern: LSystem<FriendlyFernRenderState> = {
     }
   },
   maxIterations: 6,
+  defaultOptions: {
+    iterations: 5,
+    updateFrequency: 24,
+  },
   createRenderState: (dimension: number): FriendlyFernRenderState => {
     return [
       {

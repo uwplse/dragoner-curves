@@ -24,6 +24,10 @@ export const HilbertCurve: LSystem<SimpleLSystemRenderState> = {
     }
   },
   maxIterations: 12,
+  defaultOptions: {
+    iterations: 5,
+    updateFrequency: 16,
+  },
   createRenderState: (dimension: number): SimpleLSystemRenderState => {
     return {
       currentX: 5,

@@ -7,7 +7,7 @@ import {
 import { AlphabetDescription } from "./AlphabetDescription";
 
 const STEP_SIZE = 10;
-const TURN_ANGLE = Math.PI * 2 / 3;
+const TURN_ANGLE = (Math.PI * 2) / 3;
 
 export const SierpinskiTriangle: LSystem<SimpleLSystemRenderState> = {
   name: "Sierpinski Triangle",
@@ -24,6 +24,10 @@ export const SierpinskiTriangle: LSystem<SimpleLSystemRenderState> = {
     }
   },
   maxIterations: 6,
+  defaultOptions: {
+    iterations: 1,
+    updateFrequency: 8,
+  },
   createRenderState: (dimension: number): SimpleLSystemRenderState => {
     return {
       currentX: (dimension * 9) / 10,
@@ -32,7 +36,10 @@ export const SierpinskiTriangle: LSystem<SimpleLSystemRenderState> = {
       currentNote: 0,
     };
   },
-  updateStateAndRender: simpleUpdateStateAndRenderGenerator(STEP_SIZE, TURN_ANGLE),
+  updateStateAndRender: simpleUpdateStateAndRenderGenerator(
+    STEP_SIZE,
+    TURN_ANGLE
+  ),
   playSoundFromState: simplePlaySoundFromState,
 };
 

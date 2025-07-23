@@ -11,7 +11,7 @@ import { FriendlyFern } from "./l-systems/FriendlyFern";
 import CanvasManager from "./CanvasManager";
 import { SierpinskiArrowhead } from "./l-systems/SierpinksiArrowhead";
 import { HilbertCurve } from "./l-systems/HilbertCurve";
-import { FIXED_C_MAJOR, SCALES } from "./scales";
+import { SCALES } from "./scales";
 
 const DIMENSION = 600;
 
@@ -79,8 +79,7 @@ const optionsReducer = (state: Options, action: OptionsActions): Options => {
         selectedMusicalScaleIndex: action.index,
       };
     case "set_selected_system":
-      // TODO: load stuff from the selected system's presets
-      return { ...state, currentStroke: 0, selectedSystemIndex: action.index };
+      return { ...state, ...L_SYSTEMS[action.index].defaultOptions, currentStroke: 0, selectedSystemIndex: action.index };
     case "set_update_frequency":
       return { ...state, updateFrequency: action.frequency };
     default:

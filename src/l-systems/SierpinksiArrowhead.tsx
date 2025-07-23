@@ -24,6 +24,10 @@ export const SierpinskiArrowhead: LSystem<SimpleLSystemRenderState> = {
     }
   },
   maxIterations: 12,
+  defaultOptions: {
+    iterations: 6,
+    updateFrequency: 12,
+  },
   createRenderState: (dimension: number): SimpleLSystemRenderState => {
     return {
       currentX: dimension / 10,
@@ -32,7 +36,10 @@ export const SierpinskiArrowhead: LSystem<SimpleLSystemRenderState> = {
       currentNote: 0,
     };
   },
-  updateStateAndRender: simpleUpdateStateAndRenderGenerator(STEP_SIZE, TURN_ANGLE),
+  updateStateAndRender: simpleUpdateStateAndRenderGenerator(
+    STEP_SIZE,
+    TURN_ANGLE
+  ),
   playSoundFromState: simplePlaySoundFromState,
 };
 

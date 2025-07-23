@@ -24,6 +24,10 @@ export const DragonCurve: LSystem<SimpleLSystemRenderState> = {
     }
   },
   maxIterations: 12,
+  defaultOptions: {
+    iterations: 1,
+    updateFrequency: 8,
+  },
   createRenderState: (dimension: number): SimpleLSystemRenderState => {
     return {
       currentX: dimension / 2,

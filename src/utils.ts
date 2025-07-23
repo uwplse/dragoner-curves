@@ -26,6 +26,11 @@ export type LSystem<RenderState> = {
    */
   maxIterations: number;
 
+   /**
+   * Default options that are loaded into the app when the L-System is first selected.
+   */
+  defaultOptions: {};
+
   /**
    * This is rendered when this element is chosen. Should explain
    * the rules and the relevant symbols.
