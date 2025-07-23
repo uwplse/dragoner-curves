@@ -5,6 +5,11 @@ export type maybeSynth = Tone.PolySynth<Tone.Synth<Tone.SynthOptions>> | null;
 
 export type LSystem<RenderState> = {
   /**
+   * Used in user-facing rendering.
+   */
+  name: string;
+
+  /**
    * Starting state of the L-System; each `string` is an alphabet character.
    */
   initialState: string[];
@@ -19,7 +24,7 @@ export type LSystem<RenderState> = {
   /**
    * A Matt-defined constant that (aims) to prevent the app from crashing by expanding too much. Defined experimentally.
    */
-  expansionLimit: number;
+  maxIterations: number;
 
   /**
    * This is rendered when this element is chosen. Should explain

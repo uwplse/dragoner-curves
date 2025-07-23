@@ -44,7 +44,8 @@ This project builds on:
 
 In addition, the following resources were helpful in creating the demo:
 
-- the Wikipedia pages on [L-Systems](https://en.wikipedia.org/wiki/L-system), [Dragon curves](https://en.wikipedia.org/wiki/Dragon_curve), the [Barnsley fern](https://en.wikipedia.org/wiki/Barnsley_fern), and the [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve)
+- the Wikipedia pages on [L-Systems](https://en.wikipedia.org/wiki/L-system), [Dragon curves](https://en.wikipedia.org/wiki/Dragon_curve), the [Barnsley fern](https://en.wikipedia.org/wiki/Barnsley_fern), the [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve), and [Twinkle Twinkle Little Star](https://en.wikipedia.org/wiki/Twinkle,_Twinkle,_Little_Star)
+- Harrison Milbradt's [blog post on implementing Panning and Zooming in HTML Canvas](https://harrisonmilbradt.com/blog/canvas-panning-and-zooming), which was modified for this app's pan and zoom feature
 - [p5.js](https://p5js.org/) and [Processing](https://processing.org/), which were used to create prior versions of this demo
 - Rico Trebeljahr's [Fractal Garden](https://www.fractal.garden/) project, which was helpful inspiration (even though no code was used)
 

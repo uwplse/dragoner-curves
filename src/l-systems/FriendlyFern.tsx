@@ -10,7 +10,9 @@ type FriendlyFernRenderState = {
 
 const TWENTY_FIVE_DEG_IN_RAD = (25 * Math.PI) / 180;
 
+// TODO: refactor this to a "stack-based L-System?"
 export const FriendlyFern: LSystem<FriendlyFernRenderState> = {
+  name: "Friendly Fern",
   initialState: ["-", "X"],
   description: <FriendlyFernDescription />,
   rules: (ch: string): string[] => {
@@ -42,7 +44,7 @@ export const FriendlyFern: LSystem<FriendlyFernRenderState> = {
         return [ch];
     }
   },
-  expansionLimit: 6,
+  maxIterations: 6,
   createRenderState: (dimension: number): FriendlyFernRenderState => {
     return [
       {

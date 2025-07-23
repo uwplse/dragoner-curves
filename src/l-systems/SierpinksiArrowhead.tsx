@@ -1,14 +1,16 @@
-import * as Tone from "tone";
-import { drawCanvasLine, LSystem, maybeSynth } from "../utils";
+import { LSystem } from "../utils";
+import {
+  SimpleLSystemRenderState,
+  simplePlaySoundFromState,
+  simpleUpdateStateAndRenderGenerator,
+} from "./simple-l-system";
+import { AlphabetDescription } from "./AlphabetDescription";
 
-type SierpinskiArrowheadRenderState = {
-  currentX: number;
-  currentY: number;
-  currentAngle: number;
-  currentNote: number;
-};
+const STEP_SIZE = 5;
+const TURN_ANGLE = Math.PI / 3;
 
-export const SierpinskiArrowhead: LSystem<SierpinskiArrowheadRenderState> = {
+export const SierpinskiArrowhead: LSystem<SimpleLSystemRenderState> = {
+  name: "Sierpinski Arrowhead",
   initialState: ["X"],
   description: <SierpinskiArrowheadDescription />,
   rules: (ch: string): string[] => {
@@ -21,8 +23,8 @@ export const SierpinskiArrowhead: LSystem<SierpinskiArrowheadRenderState> = {
         return [ch];
     }
   },
-  expansionLimit: 12,
-  createRenderState: (dimension: number): SierpinskiArrowheadRenderState => {
+  maxIterations: 12,
+  createRenderState: (dimension: number): SimpleLSystemRenderState => {
     return {
       currentX: dimension / 10,
       currentY: dimension / 2,
@@ -30,100 +32,22 @@ export const SierpinskiArrowhead: LSystem<SierpinskiArrowheadRenderState> = {
       currentNote: 0,
     };
   },
-  updateStateAndRender: (
-    ctx: CanvasRenderingContext2D,
-    move: string,
-    renderState: SierpinskiArrowheadRenderState,
-    scale: Tone.Unit.Frequency[]
-  ): SierpinskiArrowheadRenderState => {
-    let { currentX, currentY, currentAngle, currentNote } = renderState;
-    switch (move) {
-      case "X":
-      case "Y":
-        let oldX = currentX;
-        let oldY = currentY;
-
-        currentX += 5 * Math.cos(currentAngle);
-        currentY += 5 * Math.sin(currentAngle);
-
-        drawCanvasLine(ctx, { x: oldX, y: oldY }, { x: currentX, y: currentY });
-
-        break;
-      case "+":
-        currentAngle += Math.PI / 3;
-
-        currentNote = (currentNote + 1) % scale.length;
-
-        break;
-      case "-":
-        currentAngle -= Math.PI / 3;
-
-        currentNote = (scale.length + currentNote - 1) % scale.length;
-
-        break;
-      default:
-        console.error(`Unexpected move ${move}`);
-    }
-
-    return { currentX, currentY, currentAngle, currentNote };
-  },
-  playSoundFromState: (
-    synth: maybeSynth,
-    move: string,
-    renderState: SierpinskiArrowheadRenderState,
-    scale: Tone.Unit.Frequency[]
-  ) => {
-    const now = Tone.now();
-    switch (move) {
-      case "X":
-      case "Y":
-        synth.triggerAttackRelease(scale[renderState.currentNote], "8n", now);
-        break;
-      case "+":
-      case "-":
-        break;
-      default:
-        console.error(`Unexpected move ${move}`);
-    }
-  },
+  updateStateAndRender: simpleUpdateStateAndRenderGenerator(STEP_SIZE, TURN_ANGLE),
+  playSoundFromState: simplePlaySoundFromState,
 };
 
-export function SierpinskiArrowheadDescription() {
+function SierpinskiArrowheadDescription() {
   return (
-    <>
-      <div>
-        Sierpinski Arrowhead Rules:
-        <ul>
-          <li>start: X</li>
-          <li>
-            for every... replace with...
-            <ul>
-              <li>X &rarr; Y - X - Y</li>
-              <li>Y &rarr; X - Y - X</li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-      <div>
-        Sierpinski Arrowhead Symbols:
-        <dl>
-          <dt>X</dt>
-          <dd>visually: go forward by 5 pixels</dd>
-          <dd>musically: play transformed note</dd>
-
-          <dt>Y</dt>
-          <dd>visually: go forward by 5 pixels</dd>
-          <dd>musically: play transformed note</dd>
-
-          <dt>+</dt>
-          <dd>visually: turn left by 60 degrees</dd>
-          <dd>musically: move note up by 1 whole note</dd>
-
-          <dt>-</dt>
-          <dd>visually: turn right by 60 degrees</dd>
-          <dd>musically: move note down by 1 whole note</dd>
-        </dl>
-      </div>
-    </>
+    <AlphabetDescription
+      alphabet={["X", "Y", "+", "-"]}
+      name={SierpinskiArrowhead.name}
+      start={SierpinskiArrowhead.initialState}
+      rules={[
+        ["X", SierpinskiArrowhead.rules("X")],
+        ["Y", SierpinskiArrowhead.rules("Y")],
+      ]}
+      stepSize={STEP_SIZE}
+      turnAngle={TURN_ANGLE}
+    />
   );
 }

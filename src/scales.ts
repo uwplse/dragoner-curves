@@ -9,6 +9,8 @@ export const Eb_MAJOR = ["Eb3", "F3", "G3", "Ab4", "Bb4", "C4", "D4", "Eb4"];
 export const F_MAJOR = ["F3", "G4", "A4", "Bb4", "C4", "D4", "E4", "F4"];
 export const G_MAJOR = ["G3", "A4", "B4", "C4", "D4", "E4", "F#4", "G#4"];
 
+export const FIXED_C_MAJOR = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"];
+
 // Version with no skips
 // export const A_MAJOR = ["A4", "B4", "C#4", "D4", "E4", "F#4", "G#4"];
 // export const Ab_MAJOR = ["Ab4", "Bb4", "C4", "Db4", "Eb4", "F4", "G4"];

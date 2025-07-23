@@ -11,16 +11,16 @@ import { FriendlyFern } from "./l-systems/FriendlyFern";
 import CanvasManager from "./CanvasManager";
 import { SierpinskiArrowhead } from "./l-systems/SierpinksiArrowhead";
 import { HilbertCurve } from "./l-systems/HilbertCurve";
-import { SCALES } from "./scales";
+import { FIXED_C_MAJOR, SCALES } from "./scales";
 
 const DIMENSION = 600;
 
-const L_SYSTEMS: { name: string; system: LSystem<any> }[] = [
-  { name: "Dragon Curve", system: DragonCurve },
-  { name: "Sierpinski Triangle", system: SierpinskiTriangle },
-  { name: "Sierpinksi Arrowhead", system: SierpinskiArrowhead },
-  { name: "Friendly Fern", system: FriendlyFern },
-  { name: "Hilbert Curve", system: HilbertCurve },
+const L_SYSTEMS: LSystem<any>[] = [
+  DragonCurve,
+  SierpinskiTriangle,
+  SierpinskiArrowhead,
+  FriendlyFern,
+  HilbertCurve,
 ];
 
 type Options = {
@@ -39,7 +39,7 @@ type Options = {
 const initialOptions: Options = {
   iterations: 0,
   currentStroke: 0,
-  updateFrequency: 4,
+  updateFrequency: 8,
   selectedSystemIndex: 0,
   selectedMusicalScaleIndex: 0,
   curveColor: "#FF0000",
@@ -65,7 +65,7 @@ const optionsReducer = (state: Options, action: OptionsActions): Options => {
       return { ...state, curveColor: action.color };
     case "set_iterations_clamped":
       const max_l_system_iterations =
-        L_SYSTEMS[state.selectedSystemIndex].system.expansionLimit;
+        L_SYSTEMS[state.selectedSystemIndex].maxIterations;
       if (action.iterations > max_l_system_iterations) {
         return { ...state, iterations: max_l_system_iterations };
       }
@@ -114,10 +114,10 @@ export function App() {
   };
 
   const controlString = useMemo(() => {
-    let state: string[] = L_SYSTEMS[selectedSystemIndex].system.initialState;
+    let state: string[] = L_SYSTEMS[selectedSystemIndex].initialState;
 
     for (let i = 0; i < iterations; i++) {
-      state = state.flatMap(L_SYSTEMS[selectedSystemIndex].system.rules);
+      state = state.flatMap(L_SYSTEMS[selectedSystemIndex].rules);
     }
 
     return state;
@@ -274,7 +274,7 @@ export function App() {
       </div>
       <div className="text-center">
         <CanvasManager
-          currentSystem={L_SYSTEMS[selectedSystemIndex].system}
+          currentSystem={L_SYSTEMS[selectedSystemIndex]}
           musicalScale={SCALES[selectedMusicalScaleIndex].scale}
           moves={controlString}
           synth={synth}
@@ -283,7 +283,7 @@ export function App() {
         ></CanvasManager>
       </div>
       <div class="content-box">
-        {L_SYSTEMS[selectedSystemIndex].system.description}
+        {L_SYSTEMS[selectedSystemIndex].description}
       </div>
     </div>
   );

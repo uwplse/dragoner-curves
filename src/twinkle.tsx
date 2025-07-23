@@ -7,8 +7,8 @@ import "./style.css";
 
 import { maybeSynth, LSystem, drawCanvasLine } from "./utils";
 import CanvasManager from "./CanvasManager";
-
-const C_MAJOR = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"];
+import { FIXED_C_MAJOR } from "./scales";
+import { SimpleLSystemRenderState } from "./l-systems/simple-l-system";
 
 const DIMENSION = 600;
 
@@ -21,21 +21,15 @@ const TWINKLE_TWINKLE_LITTLE_STAR =
     .replace(/[ \n]/g, "")
     .split("");
 
-type TwinkleRenderState = {
-  currentX: number;
-  currentY: number;
-  currentAngle: number;
-  currentNote: number;
-};
-
-const TWINKLE_PSEUDO_L_SYSTEM: LSystem<TwinkleRenderState> = {
+const TWINKLE_PSEUDO_L_SYSTEM: LSystem<SimpleLSystemRenderState> = {
+  name: "Twinkle Twinkle Little Star",
   initialState: TWINKLE_TWINKLE_LITTLE_STAR,
   rules: function (ch: string): string[] {
     return [ch];
   },
-  expansionLimit: 0,
+  maxIterations: 0,
   description: undefined,
-  createRenderState: function (dimension: number): TwinkleRenderState {
+  createRenderState: function (dimension: number): SimpleLSystemRenderState {
     return {
       currentX: dimension / 2,
       currentY: dimension - 25,
@@ -46,9 +40,9 @@ const TWINKLE_PSEUDO_L_SYSTEM: LSystem<TwinkleRenderState> = {
   updateStateAndRender: function (
     ctx: CanvasRenderingContext2D,
     move: string,
-    renderState: TwinkleRenderState,
+    renderState: SimpleLSystemRenderState,
     scale: Tone.Unit.Frequency[]
-  ): TwinkleRenderState {
+  ): SimpleLSystemRenderState {
     let { currentX, currentY, currentAngle, currentNote } = renderState;
     switch (move) {
       case "Q": {
@@ -94,7 +88,7 @@ const TWINKLE_PSEUDO_L_SYSTEM: LSystem<TwinkleRenderState> = {
   playSoundFromState: function (
     synth: maybeSynth,
     move: string,
-    renderState: TwinkleRenderState,
+    renderState: SimpleLSystemRenderState,
     scale: Tone.Unit.Frequency[]
   ): void {
     const now = Tone.now();
@@ -181,7 +175,7 @@ export function App() {
       </div>
       <CanvasManager
         currentSystem={TWINKLE_PSEUDO_L_SYSTEM}
-        musicalScale={C_MAJOR}
+        musicalScale={FIXED_C_MAJOR}
         moves={TWINKLE_TWINKLE_LITTLE_STAR}
         synth={synth}
         currentStroke={currentStroke}
