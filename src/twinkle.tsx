@@ -14,9 +14,9 @@ const DIMENSION = 600;
 
 // transcribed from https://en.wikipedia.org/wiki/Twinkle,_Twinkle,_Little_Star
 const TWINKLE_TWINKLE_LITTLE_STAR =
-  `Q Q ++++ Q Q     + Q Q - H  - Q Q - Q Q    - Q Q - H
-  ++++ Q Q - Q Q - Q Q - H +++ Q Q - Q Q - Q Q - H
-  - Q Q ++++ Q Q     + Q Q - H  - Q Q - Q Q    - Q Q - H
+  `X X ++++ X X     + X X - X A   - X X - X X    - X X - X A
+  ++++ X X - X X - X X - X A  +++ X X - X X - X X - X A
+  - X X ++++ X X     + X X - X A   - X X - X X    - X X - X A
   `
     .replace(/[ \n]/g, "")
     .split("");
@@ -28,6 +28,7 @@ const TWINKLE_PSEUDO_L_SYSTEM: LSystem<SimpleLSystemRenderState> = {
     return [ch];
   },
   maxIterations: 0,
+  defaultOptions: {},
   description: undefined,
   createRenderState: function (dimension: number): SimpleLSystemRenderState {
     return {
@@ -45,7 +46,8 @@ const TWINKLE_PSEUDO_L_SYSTEM: LSystem<SimpleLSystemRenderState> = {
   ): SimpleLSystemRenderState {
     let { currentX, currentY, currentAngle, currentNote } = renderState;
     switch (move) {
-      case "Q": {
+      case "X":
+      case "A":
         let oldX = currentX;
         let oldY = currentY;
 
@@ -55,18 +57,6 @@ const TWINKLE_PSEUDO_L_SYSTEM: LSystem<SimpleLSystemRenderState> = {
         drawCanvasLine(ctx, { x: oldX, y: oldY }, { x: currentX, y: currentY });
 
         break;
-      }
-      case "H": {
-        let oldX = currentX;
-        let oldY = currentY;
-
-        currentX += 50 * Math.cos(currentAngle);
-        currentY += 50 * Math.sin(currentAngle);
-
-        drawCanvasLine(ctx, { x: oldX, y: oldY }, { x: currentX, y: currentY });
-
-        break;
-      }
       case "+":
         currentAngle += Math.PI / 2;
 
@@ -93,14 +83,15 @@ const TWINKLE_PSEUDO_L_SYSTEM: LSystem<SimpleLSystemRenderState> = {
   ): void {
     const now = Tone.now();
     switch (move) {
-      case "Q":
+      case "X":
         synth.triggerAttackRelease(scale[renderState.currentNote], "8n", now);
         break;
-      case "H":
-        synth.triggerAttackRelease(scale[renderState.currentNote], "4n", now);
-        break;
+      // case "H":
+      //   synth.triggerAttackRelease(scale[renderState.currentNote], "4n", now);
+      //   break;
       case "+":
       case "-":
+      case "A":
         break;
       default:
         break;
@@ -132,17 +123,18 @@ export function App() {
         case "-":
           setCurrentStroke(currentStroke + 1);
           return;
-        case "Q":
+        case "X":
+        case "A":
           timeout = setTimeout(
             () => setCurrentStroke(currentStroke + 1),
             1000 / beatsPerSecond
           );
           break;
-        case "H":
-          timeout = setTimeout(
-            () => setCurrentStroke(currentStroke + 1),
-            (1000 / beatsPerSecond) * 2
-          );
+        // case "H":
+        //   timeout = setTimeout(
+        //     () => setCurrentStroke(currentStroke + 1),
+        //     (1000 / beatsPerSecond) * 2
+        //   );
       }
     }
 
@@ -161,7 +153,7 @@ export function App() {
       ></input>
       <button onClick={() => setCurrentStroke(0)}>Restart</button>
       <div class="content-box">
-        <p class="control-string-box">
+        <p class="control-string-box" style="height: auto;">
           String:{" "}
           {TWINKLE_TWINKLE_LITTLE_STAR.map((ch, idx) => (
             <span
